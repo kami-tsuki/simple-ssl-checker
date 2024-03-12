@@ -4,6 +4,7 @@ from datetime import datetime
 from rich import print as rprint
 from rich.box import ROUNDED
 from rich.panel import Panel
+from rich.text import Text
 import os
 import json
 import xml.etree.ElementTree as et
@@ -38,20 +39,20 @@ def check_ssl_certificate(host, port=443) -> bool:
 
     # Check validity and print color
     if remaining < 0:
-        info += "[red]Certificate is not valid.[/red]"
-        rprint(Panel(info, box=ROUNDED, expand=False))
+        info += "Certificate is not valid."
+        rprint(Panel(Text(info, style="red"), box=ROUNDED, expand=False))
         return False
     elif remaining < 7:
-        info += "[orange1]Certificate is valid for less than a week.[/orange1]"
-        rprint(Panel(info, box=ROUNDED, expand=False))
+        info += "Certificate is valid for less than a week."
+        rprint(Panel(Text(info, style="orange1"), box=ROUNDED, expand=False))
         return True
     elif remaining < 30:
-        info += "[yellow]Certificate is valid for less than a month.[/yellow]"
-        rprint(Panel(info, box=ROUNDED, expand=False))
+        info += "Certificate is valid for less than a month."
+        rprint(Panel(Text(info, style="yellow"), box=ROUNDED, expand=False))
         return True
     else:
-        info += "[green]Certificate is valid for over a month.[/green]"
-        rprint(Panel(info, box=ROUNDED, expand=False))
+        info += "Certificate is valid for over a month."
+        rprint(Panel(Text(info, style="green"), box=ROUNDED, expand=False))
         return True
 
 
@@ -84,23 +85,28 @@ def save_hosts_to_json(hosts, file_path):
 
 
 def main():
-    input_type = input("Enter the input type (text/file): ")
-    if input_type.lower() == 'text':
+    hosts = []
+    input_type = input("Enter the input type ([t]ext/[f]ile): ")
+    if input_type.lower()[0] == 't':
         hosts = input("Enter the hosts (comma-separated): ")
         hosts = hosts.replace(" ", "").split(",")
         timestamp = int(time.time())
         json_file_path = f"saves/hosts/{timestamp}.json"
         save_hosts_to_json(hosts, json_file_path)
-    elif input_type.lower() == 'file':
+    elif input_type.lower()[0] == 'f':
         file_path = input("Enter the file path: ")
         hosts = read_hosts_from_file(file_path)
-        save_to_json = input("Do you want to save the hosts to a JSON file? (yes/no): ")
-        if save_to_json.lower() == 'yes':
+        save_to_json = input("Do you want to save the hosts to a JSON file? ([y]es/[n]o): ")
+        if save_to_json.lower()[0] == 'y':
             json_file_path = input("Enter the path to save the JSON file: ")
             save_hosts_to_json(hosts, json_file_path)
     else:
         print("Invalid input type. Please enter either 'text' or 'file'.")
-        exit(1)
+        main()
+
+    if not hosts or len(hosts) == 0:
+        print("No hosts found.")
+        return
 
     for host in hosts:
         host = extract_host_from_url(host)
